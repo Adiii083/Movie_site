@@ -3,6 +3,8 @@ import {useState,useEffect} from 'react'
 import Search from './components/Search.jsx'
 import Spinner from './components/Spinner.jsx';
 import MovieCard from './components/MovieCard.jsx';
+import {useDebounce} from 'react-use'
+import { updateSearchCount } from './appwrite.js';
 
 const API_BASE_URL='https://api.themoviedb.org/3';
 const API_KEY=import.meta.env.VITE_TMDB_API_KEY;
@@ -18,10 +20,23 @@ const API_OPTIONS={
 
 const App=()=>{
   const[searchTerm, setSearchTerm]=useState('');
-
   const [errorMessage,setErrorMessage]=useState('');
   const [movieList,setMovieList]=useState([]);
   const[isLoading,setIsLoading]=useState('false');
+  const[debouncedSearchTerm,setDebouncedSearchTerm]=useState('');
+  
+  //Debounce the search term to avoid too many API calls
+  //This will wait for 500ms after the user stops typing before updating the search term
+  //This is useful to reduce the number of API calls made while the user is typing
+  //It helps to improve performance and reduce unnecessary API calls
+  //useDebounce is a custom hook that takes a function and a delay as arguments
+  //It returns a debounced version of the function that will only be called after the delay
+  //In this case, it will update the debouncedSearchTerm after 500ms of inactivity
+  //This way, we can avoid making too many API calls while the user is typing
+  //This is especially useful for search functionality where the user is typing a query
+  //and we want to wait for them to finish typing before making the API call
+  //This helps to improve performance and reduce unnecessary API calls    
+  useDebounce(()=>setDebouncedSearchTerm(searchTerm),500,[searchTerm])
 
   const fetchMovies= async(query='')=>{
     setIsLoading(true);
@@ -37,13 +52,19 @@ const App=()=>{
         throw new Error('failed to fetch movies');
       }
        const data =await  response.json();
-       if(data.Response=='false')
+       if(data.Response==='false')
        {
           setErrorMessage(data.error || 'Failed to fetch movies'); 
           setMovieList([]);
           return;
        }
        setMovieList(data.results || [])
+       
+       if(query && data.results.length > 0) {
+         // If a search term is provided and movies are found, update the search count
+         await updateSearchCount(query, data.results[0]);
+       }
+
     }
     catch(error){
       console.error(`Error fetching movies: ${error}`);
@@ -55,8 +76,8 @@ const App=()=>{
     }
   }
   useEffect(()=>{
-      fetchMovies(searchTerm);
-  },[searchTerm])
+      fetchMovies(debouncedSearchTerm);
+  },[debouncedSearchTerm])
   return(
     <main> 
      <div className='pattern'/>
