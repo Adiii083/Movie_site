@@ -1,6 +1,6 @@
 <div align="center">
   <br />
-    <img src={process.env.PUBLIC_URL + '/hero.png'} alt="Project Banner" />
+   <img src="public/hero.png" alt="Project Banner">
   <br />
   
   <div>
