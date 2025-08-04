@@ -11,6 +11,7 @@
   </div>
 
   <h3 align="center">A Movie Application</h3>
+  </div>
 
 ## <a name="introduction">🤖 Introduction</a>
 
