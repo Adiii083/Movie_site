@@ -1,7 +1,6 @@
 <div align="center">
   <br />
-      <img src="public/readme/hero.png" alt="Project Banner">
-    </a>
+    <img src={process.env.PUBLIC_URL + '/hero.png'} alt="Project Banner" />
   <br />
   
   <div>
